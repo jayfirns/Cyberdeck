@@ -25,7 +25,7 @@ class OledDisplayPlugin(BasePlugin):
                 self.oled.draw_text(pi_monitor._format_strings['led_mode'].format(pi_monitor.get_computer_led_mode()), position=(0, 48), font_size=self.font_size)
             else:  # oled_screen == 2
                 # Screen 3: Temperature/Fan
-                self.oled.draw_text(pi_monitor._format_strings['pi_temp'].format(pi_monitor.get_raspberry_cpu_temperature()), position=(0, 0), font_size=self.font_size)
+                self.oled.draw_text(pi_monitor._format_strings['pi_temp'].format(pi_monitor.plugins['cpu_temp'].cpu_temperature), position=(0, 0), font_size=self.font_size)
                 self.oled.draw_text(pi_monitor._format_strings['pc_temp'].format(pi_monitor.get_computer_temperature()), position=(0, 16), font_size=self.font_size)
                 self.oled.draw_text(pi_monitor._format_strings['fan_mode'].format(pi_monitor.get_computer_fan_mode()), position=(0, 32), font_size=self.font_size)
                 self.oled.draw_text(pi_monitor._format_strings['fan_duty'].format(int(float(pi_monitor.get_computer_fan_duty()/255.0)*100)), position=(0, 48), font_size=self.font_size)

@@ -12,17 +12,15 @@ class FanControlPlugin(BasePlugin):
         self.min_pwm = 0
 
     def update(self, pi_monitor):
-        current_cpu_temp = pi_monitor.get_raspberry_cpu_temperature()
-        current_fan_pwm = pi_monitor.get_raspberry_fan_pwm()
-        
-        print(f"CPU TEMP: {current_cpu_temp}C, FAN PWM: {current_fan_pwm}")
+        current_cpu_temp = pi_monitor.plugins['cpu_temp'].cpu_temperature
+        current_fan_pwm = pi_monitor.plugins['fan_pwm'].fan_pwm
         
         if current_fan_pwm != -1:
-            if self.last_fan_pwm_limit == 0 and current_fan_pwm > self.temp_threshold_high:
+            if self.last_fan_pwm_limit == 0 and current_cpu_temp > self.temp_threshold_high:
                 self.last_fan_pwm = self.max_pwm
                 self.expansion.set_fan_duty(self.last_fan_pwm, self.last_fan_pwm)
                 self.last_fan_pwm_limit = 1
-            elif self.last_fan_pwm_limit == 1 and current_fan_pwm < self.temp_threshold_low:
+            elif self.last_fan_pwm_limit == 1 and current_cpu_temp < self.temp_threshold_low:
                 self.last_fan_pwm = self.min_pwm
                 self.expansion.set_fan_duty(self.last_fan_pwm, self.last_fan_pwm)
                 self.last_fan_pwm_limit = 0

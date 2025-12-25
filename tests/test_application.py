@@ -33,11 +33,17 @@ def test_run_monitor_loop_calls_plugins():
         mock_plugin2 = MagicMock()
         mock_plugin3 = MagicMock()
         mock_plugin4 = MagicMock()
+        mock_plugin5 = MagicMock()
+        mock_plugin6 = MagicMock()
+        mock_plugin7 = MagicMock()
         mock_load_plugins.return_value = {
             'cpu_monitor': mock_plugin1, 
             'memory_monitor': mock_plugin2, 
             'disk_monitor': mock_plugin3,
-            'oled_display': mock_plugin4
+            'oled_display': mock_plugin4,
+            'fan_control': mock_plugin5,
+            'cpu_temp': mock_plugin6,
+            'fan_pwm': mock_plugin7
         }
         
         mock_oled = MagicMock()
@@ -56,3 +62,6 @@ def test_run_monitor_loop_calls_plugins():
         # Assert that the update method was called on each plugin
         mock_plugin1.update.assert_called_once()
         mock_plugin2.update.assert_called_once()
+        mock_plugin3.update.assert_called_once()
+        mock_plugin4.update.assert_called_once()
+        mock_plugin5.update.assert_called_once()

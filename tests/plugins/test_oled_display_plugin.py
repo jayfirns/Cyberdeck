@@ -17,10 +17,17 @@ def mock_pi_monitor():
     mock_mem_plugin.memory_usage = 75.0
     mock_disk_plugin = MagicMock()
     mock_disk_plugin.disk_usage = 25.0
+    mock_cpu_temp_plugin = MagicMock()
+    mock_cpu_temp_plugin.cpu_temperature = 55.0
+    mock_fan_pwm_plugin = MagicMock()
+    mock_fan_pwm_plugin.fan_pwm = 150 # Some value for testing
+    
     mock_pi_monitor.plugins = {
         'cpu_monitor': mock_cpu_plugin,
         'memory_monitor': mock_mem_plugin,
-        'disk_monitor': mock_disk_plugin
+        'disk_monitor': mock_disk_plugin,
+        'cpu_temp': mock_cpu_temp_plugin,
+        'fan_pwm': mock_fan_pwm_plugin
     }
     mock_pi_monitor._format_strings = {
         'cpu': "CPU: {}%",
@@ -39,7 +46,6 @@ def mock_pi_monitor():
     mock_pi_monitor.get_raspberry_weekday.return_value = "Wednesday"
     mock_pi_monitor.get_raspberry_time.return_value = "12:00:00"
     mock_pi_monitor.get_computer_led_mode.return_value = 4
-    mock_pi_monitor.get_raspberry_cpu_temperature.return_value = 55.0
     mock_pi_monitor.get_computer_temperature.return_value = 45.0
     mock_pi_monitor.get_computer_fan_mode.return_value = 1
     mock_pi_monitor.get_computer_fan_duty.return_value = 128
