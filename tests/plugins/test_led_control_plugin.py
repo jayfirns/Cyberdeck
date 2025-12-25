@@ -17,23 +17,21 @@ def test_led_control_plugin_init():
 
 import logging
 
-def test_led_control_plugin_rainbow_breathing(caplog):
+def test_led_control_plugin_rgb_strobe(caplog):
     mock_expansion = MagicMock()
     
     with patch('time.time') as mock_time:
-        # Mock time to a predictable value
         mock_time.return_value = 1.0
         
         plugin = LedControlPlugin(mock_expansion)
-        plugin.start_time = 0.0 # for predictable calculation
+        plugin.set_mode('rgb_strobe')
+        plugin.start_time = 0.0
         
-        # We need a mock pi_monitor, although it's not used in this plugin
         mock_pi_monitor = MagicMock()
         
         with caplog.at_level(logging.DEBUG):
             plugin.update(mock_pi_monitor)
         
-        # Expected values based on time = 1.0, start_time = 0.0
         brightness = (math.sin(1.0) + 1) / 2
         hue = 0.1
         r, g, b = plugin.hsv_to_rgb(hue, 1, 1)
@@ -44,24 +42,60 @@ def test_led_control_plugin_rainbow_breathing(caplog):
         mock_expansion.set_all_led_color.assert_called_once_with(r, g, b)
         assert f"Setting LED color to: r={r}, g={g}, b={b}" in caplog.text
 
-def test_hsv_to_rgb():
-    plugin = LedControlPlugin(MagicMock()) # Pass a mock expansion object
+def test_led_control_plugin_rainbow_fade(caplog):
+    mock_expansion = MagicMock()
     
-    # Test cases for HSV to RGB conversion
-    r, g, b = plugin.hsv_to_rgb(0.0, 1, 1) # Red
+    with patch('time.time') as mock_time:
+        mock_time.return_value = 1.0
+        
+        plugin = LedControlPlugin(mock_expansion)
+        plugin.set_mode('rainbow_fade')
+        plugin.start_time = 0.0
+        
+        mock_pi_monitor = MagicMock()
+        
+        with caplog.at_level(logging.DEBUG):
+            plugin.update(mock_pi_monitor)
+        
+        brightness = (math.sin(1.0) + 1) / 2
+        hue = 0.02
+        r, g, b = plugin.hsv_to_rgb(hue, 1, 1)
+        r = int(r * brightness)
+        g = int(g * brightness)
+        b = int(b * brightness)
+        
+        mock_expansion.set_all_led_color.assert_called_once_with(r, g, b)
+        assert f"Setting LED color to: r={r}, g={g}, b={b}" in caplog.text
+
+def test_mode_switching():
+    mock_expansion = MagicMock()
+    plugin = LedControlPlugin(mock_expansion)
+    
+    assert plugin.mode == 'rainbow_fade'
+    
+    plugin.set_mode('rgb_strobe')
+    assert plugin.mode == 'rgb_strobe'
+    
+    plugin.set_mode('off')
+    assert plugin.mode == 'off'
+
+def test_hsv_to_rgb():
+    plugin = LedControlPlugin(MagicMock())
+    
+    r, g, b = plugin.hsv_to_rgb(0.0, 1, 1)
     assert (r, g, b) == (255, 0, 0)
     
-    r, g, b = plugin.hsv_to_rgb(1/6, 1, 1) # Yellow
+    r, g, b = plugin.hsv_to_rgb(1/6, 1, 1)
     assert (r, g, b) == (255, 255, 0)
 
-    r, g, b = plugin.hsv_to_rgb(2/6, 1, 1) # Green
+    r, g, b = plugin.hsv_to_rgb(2/6, 1, 1)
     assert (r, g, b) == (0, 255, 0)
     
-    r, g, b = plugin.hsv_to_rgb(3/6, 1, 1) # Cyan
+    r, g, b = plugin.hsv_to_rgb(3/6, 1, 1)
     assert (r, g, b) == (0, 255, 255)
     
-    r, g, b = plugin.hsv_to_rgb(4/6, 1, 1) # Blue
+    r, g, b = plugin.hsv_to_rgb(4/6, 1, 1)
     assert (r, g, b) == (0, 0, 255)
     
-    r, g, b = plugin.hsv_to_rgb(5/6, 1, 1) # Magenta
+    r, g, b = plugin.hsv_to_rgb(5/6, 1, 1)
     assert (r, g, b) == (255, 0, 255)

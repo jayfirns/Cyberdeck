@@ -7,7 +7,7 @@ class LedControlPlugin(BasePlugin):
     def __init__(self, expansion):
         super().__init__()
         self.expansion = expansion
-        self.mode = 'rainbow_breathing'
+        self.mode = 'rainbow_fade'
         self.start_time = time.time()
         self.expansion.set_led_mode(1)
         self.logger = setup_logger('led_control_plugin')
@@ -16,15 +16,33 @@ class LedControlPlugin(BasePlugin):
         self.mode = mode
 
     def update(self, pi_monitor):
-        if self.mode == 'rainbow_breathing':
-            self.rainbow_breathing()
+        if self.mode == 'rgb_strobe':
+            self.rgb_strobe()
+        elif self.mode == 'rainbow_fade':
+            self.rainbow_fade()
 
-    def rainbow_breathing(self):
+    def rgb_strobe(self):
         # Breathing effect
         brightness = (math.sin(time.time() - self.start_time) + 1) / 2
         
         # Rainbow effect
         hue = (time.time() - self.start_time) * 0.1
+        r, g, b = self.hsv_to_rgb(hue, 1, 1)
+        
+        # Combine
+        r = int(r * brightness)
+        g = int(g * brightness)
+        b = int(b * brightness)
+        
+        self.logger.debug(f"Setting LED color to: r={r}, g={g}, b={b}")
+        self.expansion.set_all_led_color(r, g, b)
+
+    def rainbow_fade(self):
+        # Breathing effect
+        brightness = (math.sin(time.time() - self.start_time) + 1) / 2
+        
+        # Smooth rainbow effect
+        hue = (time.time() - self.start_time) * 0.02 # Slower transition
         r, g, b = self.hsv_to_rgb(hue, 1, 1)
         
         # Combine
