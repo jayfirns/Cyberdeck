@@ -39,6 +39,10 @@ class Pi_Monitor:
         self.plugins = load_plugins(self.oled, self.expansion)
         self.logger.info(f"Loaded {len(self.plugins)} plugins.")
 
+        # Ensure LedControlPlugin's initial mode is set, triggering set_led_mode(1)
+        if 'led_control' in self.plugins:
+            self.plugins['led_control'].set_mode(self.plugins['led_control'].mode)
+
         # Pre-allocate format strings
         self._format_strings = {
             'cpu': "CPU: {}%",
@@ -182,7 +186,14 @@ class Pi_Monitor:
             
             time.sleep(1)  # Base interval of 1 second
 
+import argparse
+
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Pi Monitor")
+    parser.add_argument('--led_mode', type=str, default='rainbow_fade', choices=['rainbow_fade', 'rgb_strobe', 'off'],
+                        help='Set the LED mode. Available modes: rainbow_fade, rgb_strobe, off')
+    args = parser.parse_args()
+
     pi_monitor = None
     logger = setup_logger('main') # Setup logger for the main execution
     
@@ -193,6 +204,10 @@ if __name__ == "__main__":
         oled = OLED()
         expansion = Expansion()
         pi_monitor = Pi_Monitor(oled, expansion)
+        
+        # Set the LED mode from the command line argument
+        if 'led_control' in pi_monitor.plugins:
+            pi_monitor.plugins['led_control'].set_mode(args.led_mode)
         
         # Use simple infinite loop instead of threading
         pi_monitor.run_monitor_loop()
