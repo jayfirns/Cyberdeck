@@ -21,6 +21,8 @@ def load_plugins(oled=None, expansion=None):
                             plugins[plugin_name] = cls(oled)
                         elif plugin_name == 'fan_control':
                             plugins[plugin_name] = cls(expansion)
+                        elif plugin_name == 'led_control':
+                            plugins[plugin_name] = cls(expansion)
                         else:
                             plugins[plugin_name] = cls()
             except ImportError as e:

@@ -10,6 +10,7 @@ class FanControlPlugin(BasePlugin):
         self.temp_threshold_low = 130
         self.max_pwm = 255
         self.min_pwm = 0
+        self.expansion.set_fan_mode(1)
 
     def update(self, pi_monitor):
         current_cpu_temp = pi_monitor.plugins['cpu_temp'].cpu_temperature

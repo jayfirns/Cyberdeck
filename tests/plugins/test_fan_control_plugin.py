@@ -29,6 +29,7 @@ def test_fan_control_plugin_init():
     mock_expansion = MagicMock()
     plugin = FanControlPlugin(mock_expansion)
     assert plugin.expansion is mock_expansion
+    mock_expansion.set_fan_mode.assert_called_once_with(1)
 
 def test_fan_control_plugin_fan_off_to_on(mock_pi_monitor):
     mock_expansion = MagicMock()

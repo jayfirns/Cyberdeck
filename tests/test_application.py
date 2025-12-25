@@ -18,11 +18,6 @@ def test_pi_monitor_initialization():
     # Assert that the objects are assigned
     assert monitor.oled is mock_oled
     assert monitor.expansion is mock_expansion
-    
-    # Assert that the expansion board is configured
-    mock_expansion.set_led_mode.assert_called_once_with(4)
-    mock_expansion.set_all_led_color.assert_called_once_with(255, 0, 0)
-    mock_expansion.set_fan_mode.assert_called_once_with(1)
 
 from unittest.mock import patch
 
@@ -36,6 +31,7 @@ def test_run_monitor_loop_calls_plugins():
         mock_plugin5 = MagicMock()
         mock_plugin6 = MagicMock()
         mock_plugin7 = MagicMock()
+        mock_plugin8 = MagicMock()
         mock_load_plugins.return_value = {
             'cpu_monitor': mock_plugin1, 
             'memory_monitor': mock_plugin2, 
@@ -43,7 +39,8 @@ def test_run_monitor_loop_calls_plugins():
             'oled_display': mock_plugin4,
             'fan_control': mock_plugin5,
             'cpu_temp': mock_plugin6,
-            'fan_pwm': mock_plugin7
+            'fan_pwm': mock_plugin7,
+            'led_control': mock_plugin8
         }
         
         mock_oled = MagicMock()
@@ -65,3 +62,6 @@ def test_run_monitor_loop_calls_plugins():
         mock_plugin3.update.assert_called_once()
         mock_plugin4.update.assert_called_once()
         mock_plugin5.update.assert_called_once()
+        mock_plugin6.update.assert_called_once()
+        mock_plugin7.update.assert_called_once()
+        mock_plugin8.update.assert_called_once()

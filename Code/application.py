@@ -50,12 +50,7 @@ class Pi_Monitor:
             'led_mode': "LED Mode: {}"
         }
 
-        try:
-            self.expansion.set_led_mode(4)
-            self.expansion.set_all_led_color(255, 0, 0)
-            self.expansion.set_fan_mode(1)
-        except Exception as e:
-            sys.exit(1)
+
 
         atexit.register(self.cleanup)
         signal.signal(signal.SIGTERM, self.handle_signal)

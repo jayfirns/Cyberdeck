@@ -14,7 +14,7 @@ def test_plugin_loading():
     mock_oled = MagicMock()
     mock_expansion = MagicMock()
     plugins = load_plugins(mock_oled, mock_expansion)
-    assert len(plugins) == 7
+    assert len(plugins) == 8
     assert 'cpu_monitor' in plugins
     assert 'memory_monitor' in plugins
     assert 'disk_monitor' in plugins
@@ -22,6 +22,7 @@ def test_plugin_loading():
     assert 'fan_control' in plugins
     assert 'cpu_temp' in plugins
     assert 'fan_pwm' in plugins
+    assert 'led_control' in plugins
     assert isinstance(plugins['cpu_monitor'], BasePlugin)
     assert type(plugins['cpu_monitor']).__name__ == 'CpuMonitorPlugin'
     assert isinstance(plugins['memory_monitor'], BasePlugin)
@@ -38,3 +39,6 @@ def test_plugin_loading():
     assert type(plugins['cpu_temp']).__name__ == 'CpuTempPlugin'
     assert isinstance(plugins['fan_pwm'], BasePlugin)
     assert type(plugins['fan_pwm']).__name__ == 'FanPwmPlugin'
+    assert isinstance(plugins['led_control'], BasePlugin)
+    assert type(plugins['led_control']).__name__ == 'LedControlPlugin'
+    assert plugins['led_control'].expansion is mock_expansion
