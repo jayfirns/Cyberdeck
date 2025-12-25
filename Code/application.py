@@ -193,6 +193,7 @@ if __name__ == "__main__":
         oled = OLED()
         expansion = Expansion()
         pi_monitor = Pi_Monitor(oled, expansion)
+        
         # Use simple infinite loop instead of threading
         pi_monitor.run_monitor_loop()
 
