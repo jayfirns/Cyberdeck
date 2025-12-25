@@ -18,10 +18,11 @@ import datetime
 from oled import OLED
 from expansion import Expansion
 from plugin_loader import load_plugins
+from logger import setup_logger
 
 class Pi_Monitor:
     __slots__ = ['oled', 'expansion', 'font_size', 'cleanup_done', 
-                 'stop_event', '_format_strings', 'plugins']
+                 'stop_event', '_format_strings', 'plugins', 'logger']
 
     def __init__(self, oled, expansion):
         # Initialize OLED and Expansion objects
@@ -31,9 +32,12 @@ class Pi_Monitor:
         self.cleanup_done = False
         self.stop_event = threading.Event()  # Keep for signal handling
         
+        # Set up logger
+        self.logger = setup_logger()
+        
         # Load plugins
         self.plugins = load_plugins(self.oled, self.expansion)
-        print(f"Loaded {len(self.plugins)} plugins.")
+        self.logger.info(f"Loaded {len(self.plugins)} plugins.")
 
         # Pre-allocate format strings
         self._format_strings = {
@@ -50,8 +54,6 @@ class Pi_Monitor:
             'led_mode': "LED Mode: {}"
         }
 
-
-
         atexit.register(self.cleanup)
         signal.signal(signal.SIGTERM, self.handle_signal)
         signal.signal(signal.SIGINT, self.handle_signal)
@@ -60,25 +62,38 @@ class Pi_Monitor:
         """Get the current date in YYYY-MM-DD format using native Python datetime"""
         # This method is still called by OledDisplayPlugin, so datetime import should be there
         # For now, we will add datetime back to imports
-        return datetime.date.today().strftime('%Y-%m-%d')
+        try:
+            return datetime.date.today().strftime('%Y-%m-%d')
+        except Exception as e:
+            self.logger.error(f"Error getting date: {e}")
+            return "1990-1-1"
 
     def get_raspberry_weekday(self):
         """Get the current weekday name using native Python datetime"""
         # This method is still called by OledDisplayPlugin, so datetime import should be there
         # For now, we will add datetime back to imports
-        return datetime.date.today().strftime('%A')
+        try:
+            return datetime.date.today().strftime('%A')
+        except Exception as e:
+            self.logger.error(f"Error getting weekday: {e}")
+            return "Error"
 
     def get_raspberry_time(self):
         """Get the current time in HH:MM:SS format using native Python datetime"""
         # This method is still called by OledDisplayPlugin, so datetime import should be there
         # For now, we will add datetime back to imports
-        return datetime.datetime.now().strftime('%H:%M:%S')
+        try:
+            return datetime.datetime.now().strftime('%H:%M:%S')
+        except Exception as e:
+            self.logger.error(f"Error getting time: {e}")
+            return '0:0:0'
 
     def get_computer_temperature(self):
         # Get the computer temperature using Expansion object
         try:
             return self.expansion.get_temp()
         except Exception as e:
+            self.logger.error(f"Error getting computer temperature: {e}")
             return 0
 
     def get_computer_fan_mode(self):
@@ -86,6 +101,7 @@ class Pi_Monitor:
         try:
             return self.expansion.get_fan_mode()
         except Exception as e:
+            self.logger.error(f"Error getting fan mode: {e}")
             return 0
 
     def get_computer_fan_duty(self):
@@ -93,6 +109,7 @@ class Pi_Monitor:
         try:
             return self.expansion.get_fan0_duty()
         except Exception as e:
+            self.logger.error(f"Error getting fan duty: {e}")
             return 0
 
     def get_computer_led_mode(self):
@@ -100,6 +117,7 @@ class Pi_Monitor:
         try:
             return self.expansion.get_led_mode()
         except Exception as e:
+            self.logger.error(f"Error getting led mode: {e}")
             return 0
 
     def cleanup(self):
@@ -107,66 +125,69 @@ class Pi_Monitor:
         if self.cleanup_done:
             return
         self.cleanup_done = True
+        self.logger.info("Cleaning up and shutting down.")
         try:
             if self.oled:
                 self.oled.close()
         except Exception as e:
-            pass
+            self.logger.error(f"Error closing OLED: {e}")
         try:
             if self.expansion:
                 self.expansion.set_led_mode(1)
         except Exception as e:
-            pass
+            self.logger.error(f"Error setting LED mode during cleanup: {e}")
         try:
             if self.expansion:
                 self.expansion.set_all_led_color(0, 0, 0)
         except Exception as e:
-            pass
+            self.logger.error(f"Error setting LED color during cleanup: {e}")
         try:
             if self.expansion:
                 self.expansion.set_fan_mode(0)
         except Exception as e:
-            pass
+            self.logger.error(f"Error setting fan mode during cleanup: {e}")
         try:
             if self.expansion:
                 self.expansion.set_fan_frequency(50)
         except Exception as e:
-            pass
+            self.logger.error(f"Error setting fan frequency during cleanup: {e}")
         try:
             if self.expansion:
                 self.expansion.set_fan_duty(0, 0)
         except Exception as e:
-            pass
+            self.logger.error(f"Error setting fan duty during cleanup: {e}")
         try:
             if self.expansion:
                 self.expansion.end()
         except Exception as e:
-            pass
+            self.logger.error(f"Error closing expansion board: {e}")
 
     def handle_signal(self, signum, frame):
         # Handle signal to stop the application
+        self.logger.info(f"Received signal {signum}, shutting down.")
         self.stop_event.set()
         self.cleanup()
         sys.exit(0)
 
     def run_monitor_loop(self):
         """Main monitoring loop - single-threaded infinite loop for both OLED display and fan control"""
+        self.logger.info("Starting monitor loop.")
         while not self.stop_event.is_set():
             # Update all loaded plugins
             for plugin in self.plugins.values():
                 plugin.update(self)
 
-            # Fan control logic is now in FanControlPlugin
-            
             # Use single print statement to reduce I/O
-            print(f"CPU TEMP: {self.plugins['cpu_temp'].cpu_temperature}C, FAN PWM: {self.plugins['fan_pwm'].fan_pwm}")
+            self.logger.debug(f"CPU TEMP: {self.plugins['cpu_temp'].cpu_temperature}C, FAN PWM: {self.plugins['fan_pwm'].fan_pwm}")
             
             time.sleep(1)  # Base interval of 1 second
 
 if __name__ == "__main__":
     pi_monitor = None
-
+    logger = setup_logger('main') # Setup logger for the main execution
+    
     try:
+        logger.info("Application starting.")
         time.sleep(1)
 
         oled = OLED()
@@ -176,11 +197,11 @@ if __name__ == "__main__":
         pi_monitor.run_monitor_loop()
 
     except KeyboardInterrupt:
-        print("\nShutdown requested by user (Ctrl+C)")
+        logger.info("Shutdown requested by user (Ctrl+C).")
     except Exception as e:
-        print(f"Unexpected error: {e}")
+        logger.error(f"Unexpected error: {e}", exc_info=True)
     finally:
         if pi_monitor is not None:
             pi_monitor.stop_event.set()
             pi_monitor.cleanup()
-        print("Monitor stopped.")
+        logger.info("Application stopped.")
