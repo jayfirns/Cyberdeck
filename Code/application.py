@@ -18,19 +18,24 @@ import datetime
 
 from oled import OLED
 from expansion import Expansion
+from plugin_loader import load_plugins
 
 class Pi_Monitor:
     __slots__ = ['oled', 'expansion', 'font_size', 'cleanup_done', 
-                 'stop_event', '_fan_pwm_path', '_format_strings']
+                 'stop_event', '_fan_pwm_path', '_format_strings', 'plugins']
 
-    def __init__(self):
+    def __init__(self, oled, expansion):
         # Initialize OLED and Expansion objects
-        self.oled = None
-        self.expansion = None
+        self.oled = oled
+        self.expansion = expansion
         self.font_size = 12
         self.cleanup_done = False
         self.stop_event = threading.Event()  # Keep for signal handling
         
+        # Load plugins
+        self.plugins = load_plugins(self.oled)
+        print(f"Loaded {len(self.plugins)} plugins.")
+
         # Cache hwmon path lookup for performance
         self._fan_pwm_path = None
         
@@ -50,12 +55,6 @@ class Pi_Monitor:
         }
 
         try:
-            self.oled = OLED()
-        except Exception as e:
-            sys.exit(1)
-
-        try:
-            self.expansion = Expansion()
             self.expansion.set_led_mode(4)
             self.expansion.set_all_led_color(255, 0, 0)
             self.expansion.set_fan_mode(1)
@@ -106,29 +105,6 @@ class Pi_Monitor:
             except Exception:
                 return -1
         return -1
-
-    def get_raspberry_cpu_usage(self):
-        """Get the CPU usage percentage"""
-        try:
-            return psutil.cpu_percent(interval=0)
-        except Exception:
-            return 0
-
-    def get_raspberry_memory_usage(self):
-        """Get the memory usage percentage"""
-        try:
-            memory = psutil.virtual_memory()
-            return memory.percent
-        except Exception:
-            return 0
-
-    def get_raspberry_disk_usage(self, path='/'):
-        """Get the disk usage percentage for the specified path"""
-        try:
-            disk_usage = psutil.disk_usage(path)
-            return disk_usage.percent
-        except Exception:
-            return 0
 
     def get_raspberry_date(self):
         """Get the current date in YYYY-MM-DD format using native Python datetime"""
@@ -247,6 +223,10 @@ class Pi_Monitor:
         oled_screen = 0   # Which screen to show (0, 1, or 2)
         
         while not self.stop_event.is_set():
+            # Update all loaded plugins
+            for plugin in self.plugins.values():
+                plugin.update(self)
+
             # Fan control logic (runs every iteration - every 1 second)
             current_cpu_temp = self.get_raspberry_cpu_temperature()
             current_fan_pwm = self.get_raspberry_fan_pwm()
@@ -264,30 +244,7 @@ class Pi_Monitor:
                     self.expansion.set_fan_duty(last_fan_pwm, last_fan_pwm)
                     last_fan_pwm_limit = 0
             
-            # OLED update logic (runs every 3 seconds)
-            if oled_counter % 3 == 0:
-                self.oled.clear()
-                if oled_screen == 0:
-                    # Screen 1: System Parameters
-                    self.oled.draw_text("PI Parameters", position=(0, 0), font_size=self.font_size)
-                    self.oled.draw_text(self._format_strings['cpu'].format(self.get_raspberry_cpu_usage()), position=(0, 16), font_size=self.font_size)
-                    self.oled.draw_text(self._format_strings['mem'].format(self.get_raspberry_memory_usage()), position=(0, 32), font_size=self.font_size)
-                    self.oled.draw_text(self._format_strings['disk'].format(self.get_raspberry_disk_usage()), position=(0, 48), font_size=self.font_size)
-                elif oled_screen == 1:
-                    # Screen 2: Date/Time/LED
-                    self.oled.draw_text(self._format_strings['date'].format(self.get_raspberry_date()), position=(0, 0), font_size=self.font_size)
-                    self.oled.draw_text(self._format_strings['week'].format(self.get_raspberry_weekday()), position=(0, 16), font_size=self.font_size)
-                    self.oled.draw_text(self._format_strings['time'].format(self.get_raspberry_time()), position=(0, 32), font_size=self.font_size)
-                    self.oled.draw_text(self._format_strings['led_mode'].format(self.get_computer_led_mode()), position=(0, 48), font_size=self.font_size)
-                else:  # oled_screen == 2
-                    # Screen 3: Temperature/Fan
-                    self.oled.draw_text(self._format_strings['pi_temp'].format(current_cpu_temp), position=(0, 0), font_size=self.font_size)
-                    self.oled.draw_text(self._format_strings['pc_temp'].format(self.get_computer_temperature()), position=(0, 16), font_size=self.font_size)
-                    self.oled.draw_text(self._format_strings['fan_mode'].format(self.get_computer_fan_mode()), position=(0, 32), font_size=self.font_size)
-                    self.oled.draw_text(self._format_strings['fan_duty'].format(int(float(self.get_computer_fan_duty()/255.0)*100)), position=(0, 48), font_size=self.font_size)
-                
-                self.oled.show()
-                oled_screen = (oled_screen + 1) % 3  # Cycle through screens 0, 1, 2
+            # OLED update logic is now in OledDisplayPlugin
             
             oled_counter += 1
             time.sleep(1)  # Base interval of 1 second
@@ -298,7 +255,9 @@ if __name__ == "__main__":
     try:
         time.sleep(1)
 
-        pi_monitor = Pi_Monitor()
+        oled = OLED()
+        expansion = Expansion()
+        pi_monitor = Pi_Monitor(oled, expansion)
         # Use simple infinite loop instead of threading
         pi_monitor.run_monitor_loop()
 
