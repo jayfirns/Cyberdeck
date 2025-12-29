@@ -30,7 +30,7 @@ class Camera:
         self.streaming = False                     # Initialize the streaming flag
 
     def start_image(self):
-        self.camera.start_preview(Preview.QTGL)  # Start the camera preview using the QTGL backend
+        self.camera.start_preview(Preview.NULL)  # Start the camera preview using the QTGL backend
         self.camera.start()                      # Start the camera
 
     def save_image(self, filename):

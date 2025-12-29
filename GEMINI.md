@@ -1,74 +1,23 @@
 # Gemini Workspace - Freenove Computer Case Kit
 
-This directory contains the code and resources for the Freenove Computer Case Kit for Raspberry Pi.
+This directory contains the code and resources for the Freenove Computer Case Kit, running on a Raspberry Pi 5 with Kali Linux.
 
 ## Project Overview
 
-This project is a Python application that runs on a Raspberry Pi equipped with the Freenove Computer Case Kit. The application monitors the Raspberry Pi's system vitals, including CPU usage, memory usage, disk usage, and temperature. It also controls the kit's hardware components, such as an OLED display, addressable LEDs, and cooling fans.
+This project serves as the **foundational hardware abstraction layer** for the system. It contains stable, reliable, and well-documented code for interacting with the case's integrated hardware, including:
 
-The main application, `application.py`, runs in a loop to collect system data and update the OLED display with real-time information. It also manages the cooling fan based on the CPU temperature. The `generate_service.py` script is provided to set up the main application as a systemd service, ensuring it runs automatically on boot.
+*   OLED Display
+*   Addressable RGB LEDs
+*   Cooling Fans and Temperature Sensors
+*   Camera Module
 
-The project utilizes the following key libraries:
-- **`psutil`**: For gathering system information like CPU, memory, and disk usage.
-- **`smbus`**: For I2C communication with the expansion board.
-- **`luma.oled`**: For controlling the OLED display.
-- **`PIL (Pillow)`**: For image manipulation and display on the OLED screen.
-- **`picamera2`**: For camera functionalities.
+The code in this repository is considered the **gold standard** for hardware interaction. It is designed to be a dependable backbone that other projects can and should rely on for any hardware-related functionality.
 
-## Development Environment
+## Gemini's Role
 
-The `cyberdeck` branch is considered the gold standard and will not be directly developed upon. All development and modifications to this project will occur on separate feature branches, which will then be merged into `cyberdeck` after review and testing. The current goal is to improve and enhance the existing framework and expand upon the functionality defined in the code.
+My primary function within this project is to:
 
-## Building and Running
-
-### Prerequisites
-
-- A Raspberry Pi with the Freenove Computer Case Kit.
-- Python 3.
-- The required Python libraries installed. You can likely install them using pip:
-  ```bash
-  pip install psutil smbus luma.oled Pillow picamera2
-  ```
-
-### Running the Application
-
-The main application can be run directly from the `Code` directory:
-
-```bash
-cd Code
-python3 application.py
-```
-
-### Installing as a Service
-
-To have the application start automatically on boot, you can use the `generate_service.py` script. This will create and enable a systemd service.
-
-```bash
-cd Code
-sudo python3 generate_service.py
-```
-
-This will perform the following actions:
-1.  Create a `my_app_running.service` file in `/etc/systemd/system/`.
-2.  Reload the systemd daemon.
-3.  Enable the service to start on boot.
-4.  Start the service immediately.
-
-You can check the status of the service using:
-
-```bash
-sudo systemctl status my_app_running.service
-```
-
-## Development Conventions
-
-The code is written in Python and follows standard Python conventions.
-
-- The `application.py` script is the main entry point and contains the monitoring and control loop.
-- Hardware interactions are abstracted into classes:
-    - `OLED` in `oled.py` for the OLED display.
-    - `Expansion` in `expansion.py` for the expansion board (LEDs, fan, temperature sensor).
-    - `Camera` in `camera.py` for the camera.
-- The `generate_service.py` script is used for deployment and should not need modification for typical use.
-
-The project is structured to be modular, with clear separation of concerns between the main application logic and the hardware control modules.
+1.  **Maintain Stability:** Ensure that any changes or additions to the hardware control code are robust, efficient, and adhere to the project's high standards.
+2.  **Identify Synergies:** Proactively identify opportunities to leverage this foundational hardware code in other projects, such as `hacker_basics` or `Noob_Linux_stuff`. When a task in another repository requires hardware interaction (e.g., displaying status on the OLED, using the camera), I will treat this repository as the canonical source for that functionality.
+3.  **Enforce Modularity:** Keep the hardware control logic cleanly separated and well-documented, ensuring it remains a reliable and easy-to-use API for other applications.
+4.  **Camera Setup (Kali Linux on Raspberry Pi 5):** Undertook extensive troubleshooting and installation of `libcamera` development tools and `rpicam-apps` from source to address camera detection issues on Kali Linux. This involved resolving numerous build dependencies (`meson`, `ninja`, `boost`, `libdrm`, `libavcodec`, `libexif`, `libtiff`, `libpng`, `pkg-config`, etc.). The `rpicam-apps` are now installed, but the system still reports no cameras available, requiring user intervention to verify physical connection and `raspi-config` settings.
