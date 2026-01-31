@@ -159,3 +159,36 @@ To resolve the "No cameras available!" issue and enable camera functionality, pl
 
 Once these steps are completed and the `rpicam-hello --list-cameras` command successfully lists your camera, the Python example `Code/camera.py` should also function correctly. Please inform me of your progress.
 
+---
+
+### Security Research Integration
+
+This Cyberdeck has been integrated with the [Security Research](../Security_Research) toolkit to provide visual feedback during security operations.
+
+**Features:**
+- **LED Status Indicators**: LEDs change color based on current operation
+  - Red = WiFi scanning
+  - Yellow = Reconnaissance/OpSec check
+  - Blue = Network scanning
+  - Green = OpSec verified (VPN active)
+  - Red flash = Alert/Error
+- **OLED Security Screen**: When security tools are running, the OLED shows:
+  - Current operation phase
+  - Target (IP, interface)
+  - Progress bar
+  - Status messages
+
+**Documentation:**
+- [Security Integration Plugin](Code/plugins/SECURITY_INTEGRATION.md) - Cyberdeck-side integration
+- [Hardware Bridge API](../Security_Research/13-Utils/HARDWARE_BRIDGE.md) - Security tools API
+
+**Quick Test:**
+```bash
+# Terminal 1: Start Cyberdeck
+cd Code && python application.py
+
+# Terminal 2: Run demo
+cd ../Security_Research/13-Utils
+python test_hardware_bridge.py --demo
+```
+
