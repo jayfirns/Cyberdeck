@@ -161,6 +161,18 @@ Once these steps are completed and the `rpicam-hello --list-cameras` command suc
 
 ---
 
+### Peripherals
+
+| Device | Interface | Capabilities |
+|--------|-----------|-------------|
+| RTL8812AU USB WiFi Adapter | USB | Dual-band 2.4/5 GHz, monitor mode, packet injection |
+| Raspberry Pi Camera Module | CSI | rpicam-apps (built from source for Kali) |
+
+- **WiFi driver:** [aircrack-ng/rtl8812au](https://github.com/aircrack-ng/rtl8812au) v5.6.4.2, DKMS install
+- **Usage docs:** [Security_Research/10-Hardware-Attacks/WiFi-Adapter/RTL8812AU.md](https://github.com/jayfirns/Security_Research/blob/main/10-Hardware-Attacks/WiFi-Adapter/RTL8812AU.md)
+
+---
+
 ### Security Research Integration
 
 This Cyberdeck has been integrated with the [Security Research](../Security_Research) toolkit to provide visual feedback during security operations.
@@ -192,3 +204,9 @@ cd ../Security_Research/13-Utils
 python test_hardware_bridge.py --demo
 ```
 
+---
+
+## Related Repositories
+
+- [Security_Research](https://github.com/jayfirns/Security_Research) — Structured security workflows and automation
+- [rtl8812au](https://github.com/jayfirns/rtl8812au) — WiFi adapter driver fork (RTL8812AU)
